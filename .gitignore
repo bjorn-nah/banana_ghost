@@ -1,0 +1,15 @@
+# Object files
+*.o
+
+# Linker output
+*.map
+
+# Libraries
+*.lib
+
+# palettes
+*.pal
+
+# Images
+*.lnx
+*.o
