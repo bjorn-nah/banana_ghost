@@ -40,7 +40,7 @@ AFLAGS=-I $(CA65_INC) -t $(SYS)
 CFLAGS=-I $(CC65_INC) -t $(SYS) --add-source -O -Or -Cl -Os
 
 target = banana_ghost
-objects = main.o title_screen.o title_screen_bg.o game.o 
+objects = main.o title_screen.o title_screen_bg.o game.o ghost00.o ghost01.o
 
 $(target) : $(objects)
 	$(CL) -t $(SYS) -o $@.lnx -m banana_ghost.map $(objects) lynx.lib
@@ -69,7 +69,7 @@ $(target) : $(objects)
 	$(ECHO) _$*: .incbin "$*.spr" >> $*.s
 	$(AS) -o $@ $(AFLAGS) $*.s
 	$(RM) $*.s
-#	$(RM) $*.pal
+	$(RM) $*.pal
 	$(RM) $*.spr
 
 lynx-stdjoy.o:
