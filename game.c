@@ -17,8 +17,8 @@ SCB_REHV_PAL ghost = {
   ghost00,
   20, 20,
   0x0100, 0x0100,
-  // palette values can be found in .pal file provided by sprpck
-  {0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF}
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
 
 void game_logic(){
@@ -30,17 +30,19 @@ void game_logic(){
 	tgi_sprite(&ghost);
 	joy = joy_read(JOY_1);
 	
-	if (JOY_UP(joy) && ghost.vpos > 0) {
+	if (JOY_UP(joy) && ghost.vpos > 8) {
 		ghost.vpos--;
 	}
-	if (JOY_DOWN(joy) && ghost.vpos < 102-16) {
+	if (JOY_DOWN(joy) && ghost.vpos < 102-8) {
 		ghost.vpos++;
 	}
-	if (JOY_LEFT(joy) && ghost.hpos > 0) {
+	if (JOY_LEFT(joy) && ghost.hpos > 8) {
 		ghost.hpos--;
+		ghost.sprctl0 = BPP_4 | TYPE_NORMAL;
 	}
-	if (JOY_RIGHT(joy)&& ghost.hpos < 160-16) {
-		ghost.hpos++;	
+	if (JOY_RIGHT(joy)&& ghost.hpos < 160-8) {
+		ghost.hpos++;
+		ghost.sprctl0 = BPP_4 | TYPE_NORMAL | HFLIP;
 	}
 	if (JOY_BTN_2(joy)) {
 		ghost.data = ghost01;

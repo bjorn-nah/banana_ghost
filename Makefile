@@ -63,7 +63,7 @@ $(target) : $(objects)
 
 # Rule for making a *.o file out of a *.bmp file
 %.o : %.bmp
-	$(SPRPCK) -t6 -p2 $<
+	$(SPRPCK) -t6 -p2 -a008008 $<
 	$(ECHO) .global _$* > $*.s
 	$(ECHO) .segment "$(RODATA_SEGMENT)" >> $*.s
 	$(ECHO) _$*: .incbin "$*.spr" >> $*.s
