@@ -8,6 +8,10 @@
 unsigned int button;
 extern unsigned char ghost00_spr[];
 extern unsigned char ghost01_spr[];
+extern unsigned char explorer00_spr[];
+extern unsigned char explorer01_spr[];
+extern unsigned char explorer02_spr[];
+extern unsigned char explorer03_spr[];
 extern unsigned char playfield00[];
 
 SCB_REHV_PAL ghost = {
@@ -22,11 +26,23 @@ SCB_REHV_PAL ghost = {
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
 
-SCB_REHV_PAL playfield = {
+SCB_REHV_PAL explorer = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
   (char *)&ghost,
+  explorer00_spr,
+  80, 80,
+  0x0100, 0x0100,
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+};
+
+SCB_REHV_PAL playfield = {
+  BPP_4 | TYPE_NORMAL, 
+  REHV,
+  0x01,
+  (char *)&explorer,
   playfield00,
   0, 0,
   0x0100, 0x0100,
@@ -42,6 +58,7 @@ void game_logic(){
 	
 	
 	tgi_sprite(&playfield);
+	tgi_sprite(&explorer);
 	tgi_sprite(&ghost);
 	joy = joy_read(JOY_1);
 	
