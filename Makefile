@@ -40,7 +40,7 @@ AFLAGS=-I $(CA65_INC) -t $(SYS)
 CFLAGS=-I $(CC65_INC) -t $(SYS) --add-source -O -Or -Cl -Os
 
 target = banana_ghost
-objects = main.o title_screen.o title_screen_bg.o game.o ghost00.o ghost01.o
+objects = main.o title_screen.o title_screen_bg.o game.o ghost00_spr.o ghost01_spr.o playfield00.o
 
 $(target) : $(objects)
 	$(CL) -t $(SYS) -o $@.lnx -m banana_ghost.map $(objects) lynx.lib
@@ -61,9 +61,20 @@ $(target) : $(objects)
 %.o: %.asm
 	$(AS) -o $@ $(AFLAGS) $<
 
+# Rule for making a *.o file out of a *.bmp file with sprite offset
+%_spr.o : %_spr.bmp
+	$(SPRPCK) -t6 -p2 -a008008 $<
+	$(ECHO) .global _$*_spr > $*_spr.s
+	$(ECHO) .segment "$(RODATA_SEGMENT)" >> $*_spr.s
+	$(ECHO) _$*_spr: .incbin "$*_spr.spr" >> $*_spr.s
+	$(AS) -o $@ $(AFLAGS) $*_spr.s
+	$(RM) $*_spr.s
+	$(RM) $*_spr.pal
+	$(RM) $*_spr.spr
+
 # Rule for making a *.o file out of a *.bmp file
 %.o : %.bmp
-	$(SPRPCK) -t6 -p2 -a008008 $<
+	$(SPRPCK) -t6 -p2 $<
 	$(ECHO) .global _$* > $*.s
 	$(ECHO) .segment "$(RODATA_SEGMENT)" >> $*.s
 	$(ECHO) _$*: .incbin "$*.spr" >> $*.s

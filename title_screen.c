@@ -24,9 +24,9 @@ SCB_REHV_PAL screen_bg = {
   0x01,
   0x0000,
   title_screen_bg,
-  8, 8,
+  0, 0,
   0x0100, 0x0100,
-  {0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF}
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
 
 
@@ -49,6 +49,7 @@ void title_screen(){
 	button_title = 1;
 	tgi_clear();
 	tgi_sprite(&screen_bg);
+	tgi_updatedisplay();
 	
 	tgi_outtextxy(56, 88, "Press A or B");
 	while(button_title){
