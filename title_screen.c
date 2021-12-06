@@ -7,6 +7,7 @@
 
 unsigned int button_title;
 extern unsigned char title_screen_bg[];
+unsigned int randomizator = 0;
 
 /*
 SCB_RENONE screen_bg =  {
@@ -28,7 +29,6 @@ SCB_REHV_PAL screen_bg = {
   0x0100, 0x0100,
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
-
 
 void screen_logic(){
 	unsigned char joy;
@@ -54,6 +54,7 @@ void title_screen(){
 	tgi_outtextxy(56, 88, "Press A or B");
 	while(button_title){
 		screen_logic();
+		randomizator++;
 	}	
-
+	srand(randomizator);
 }

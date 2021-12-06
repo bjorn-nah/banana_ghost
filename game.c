@@ -5,6 +5,8 @@
 #include <conio.h>
 #include <joystick.h> 
 
+#include "game.h"
+
 unsigned int button;
 extern unsigned char ghost00_spr[];
 extern unsigned char ghost01_spr[];
@@ -26,7 +28,7 @@ SCB_REHV_PAL ghost = {
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
 
-SCB_REHV_PAL explorer = {
+SCB_REHV_PAL explorer_spr = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
@@ -42,13 +44,91 @@ SCB_REHV_PAL playfield = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
-  (char *)&explorer,
+  (char *)&explorer_spr,
   playfield00,
   0, 0,
   0x0100, 0x0100,
   // 0 and D are inverted to make magenta transluent
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
+
+EXPLORER_TYPE explorer = {
+	640,
+	640,
+	1, 2,
+	20,
+	WALK,
+	600,
+	DIR_RIGHT
+};
+
+void explorer_logic(){
+	
+	explorer.statustics--;
+	explorer.tics--;
+	
+	if(explorer.status == SEARCH){
+		if(explorer.tics == 0){
+			if(explorer.direction == DIR_LEFT){
+				explorer.direction = DIR_RIGHT;
+			}
+			else{
+				explorer.direction = DIR_LEFT;
+			}
+			explorer.tics = 120;
+		}
+		if(explorer.statustics == 0){
+			explorer.statustics = 600;
+			explorer.status = WALK;
+			explorer.vspeed = rand()/2047 - 8;
+			explorer.hspeed = rand()/2047 - 8;
+		}
+	}
+	else{
+		explorer.vpos += explorer.vspeed;
+		explorer.hpos += explorer.hspeed;
+		explorer_spr.vpos = explorer.vpos/16;
+		explorer_spr.hpos = explorer.hpos/16;
+		if(explorer_spr.vpos < 8 || explorer_spr.vpos > 102-8){
+			explorer.vspeed = -explorer.vspeed;
+		}
+		if(explorer_spr.hpos < 8 || explorer_spr.hpos > 160-8){
+			explorer.hspeed = -explorer.hspeed;
+		}
+	}
+	if(explorer.status == WALK){
+		if(explorer.tics == 0){
+			if(explorer_spr.data == explorer00_spr){
+				explorer_spr.data = explorer01_spr;
+			}
+			else
+			{
+				explorer_spr.data = explorer00_spr;
+			}
+			explorer.tics = 20;
+		}
+		if(explorer.hspeed > 0){
+			explorer.direction = DIR_RIGHT;
+		}
+		else
+		{
+			explorer.direction = DIR_LEFT;
+		}
+		if(explorer.statustics == 0){
+			explorer.statustics = 600;
+			explorer.status = SEARCH;
+		}
+	}
+	
+	if(explorer.direction == DIR_LEFT){
+		explorer_spr.sprctl0 = BPP_4 | TYPE_NORMAL;
+	}
+	else
+	{
+		explorer_spr.sprctl0 = BPP_4 | TYPE_NORMAL | HFLIP;
+	}
+
+}
 
 void game_logic(){
 	unsigned char joy;
@@ -58,7 +138,7 @@ void game_logic(){
 	
 	
 	tgi_sprite(&playfield);
-	tgi_sprite(&explorer);
+	tgi_sprite(&explorer_spr);
 	tgi_sprite(&ghost);
 	joy = joy_read(JOY_1);
 	
@@ -102,6 +182,7 @@ void game(){
 		if (!tgi_busy())
 		{
 			game_logic();
+			explorer_logic();
 		}
 	}	
 
