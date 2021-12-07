@@ -80,8 +80,8 @@ void explorer_logic(){
 		if(explorer.statustics == 0){
 			explorer.statustics = 600;
 			explorer.status = WALK;
-			explorer.vspeed = rand()/2047 - 8;
-			explorer.hspeed = rand()/2047 - 8;
+			explorer.vspeed = rand()/2048 - 8;
+			explorer.hspeed = rand()/2048 - 8;
 		}
 	}
 	else{
@@ -118,6 +118,36 @@ void explorer_logic(){
 			explorer.statustics = 600;
 			explorer.status = SEARCH;
 		}
+	}
+	if(explorer.status == PANIC){
+		if(explorer.tics == 0){
+			if(explorer_spr.data == explorer02_spr){
+				explorer_spr.data = explorer03_spr;
+			}
+			else
+			{
+				explorer_spr.data = explorer02_spr;
+			}
+			explorer.tics = 10;
+		}
+		if(explorer.hspeed > 0){
+			explorer.direction = DIR_RIGHT;
+		}
+		else
+		{
+			explorer.direction = DIR_LEFT;
+		}
+		if(explorer.statustics == 0){
+			explorer.statustics = 600;
+			explorer.status = SEARCH;
+		}
+	}
+	if(explorer.status == SCARED){
+			explorer.statustics = 600;
+			explorer.status = PANIC;
+			explorer.vspeed = explorer_spr.vpos - ghost.vpos;
+			explorer.hspeed = explorer_spr.hpos - ghost.hpos;
+			explorer.tics = 10;
 	}
 	
 	if(explorer.direction == DIR_LEFT){
@@ -158,6 +188,9 @@ void game_logic(){
 	}
 	if (JOY_BTN_2(joy)) {
 		ghost.data = ghost01_spr;
+		if (explorer.status != PANIC){
+			explorer.status = SCARED;
+		}
 	}
 	else{
 		ghost.data = ghost00_spr;
