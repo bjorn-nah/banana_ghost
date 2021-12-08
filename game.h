@@ -9,6 +9,9 @@
 #define DIR_LEFT	0x13
 #define DIR_RIGHT	0x14
 
+#define NORMAL		0x20
+#define LEVEL_UP	0x21
+
 typedef struct EXPLORER_TYPE {
 	signed int vpos;			// vsize x8
 	signed int hpos;			// hsize x8

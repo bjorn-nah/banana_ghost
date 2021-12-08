@@ -7,7 +7,8 @@
 
 #include "game.h"
 
-unsigned int playing;
+unsigned int playing, level;
+unsigned char game_status;
 extern unsigned char ghost00_spr[];
 extern unsigned char ghost01_spr[];
 extern unsigned char explorer00_spr[];
@@ -81,7 +82,7 @@ SCB_REHV_PAL playfield = {
 };
 
 EXPLORER_TYPE explorer = {
-	1280,
+	1072,
 	1280,
 	1, 2,
 	20,
@@ -91,13 +92,30 @@ EXPLORER_TYPE explorer = {
 };
 
 void init_explorer(){
-	explorer.vpos = 1280;			// vsize x8
-	explorer.hpos = 1280;			// hsize x8
+	explorer.vpos = 1072;			// vsize x16
+	explorer.hpos = 1280;			// hsize x16
 	explorer.tics = 10;			// tics for walk
 	explorer.status = SEARCH;		// status
 	explorer.statustics = 300;	// tics for status
 	explorer.direction = DIR_LEFT;
 	explorer_spr.data = explorer00_spr;
+	explorer_spr.vpos = explorer.vpos/16;
+	explorer_spr.hpos = explorer.hpos/16;
+}
+
+void init_level(){
+	signed int vdiff, hdiff;
+	unsigned int pop = 1;
+	
+	while(pop){
+		hole.hpos = rand()/341 + 32;
+		hole.vpos = rand()/862 + 32;			
+		vdiff = explorer_spr.vpos - hole.vpos;
+		hdiff = explorer_spr.hpos - hole.hpos;
+		if (!(vdiff > -16 && vdiff < 4 && hdiff > -8 && hdiff < 8)){
+			pop = 0;
+		}
+	}
 }
 
 void explorer_logic(){
@@ -232,6 +250,19 @@ void physics(){
 	if ((vdiff > -14 && vdiff < 2) && (hdiff > -8 && hdiff < 8) && explorer.status != FALLING){
 		explorer.status = FALL;
 	}
+	if(explorer_spr.hpos == 80 && explorer_spr.vpos<17){
+		game_status = LEVEL_UP;
+	}
+	if(explorer_spr.hpos == 80 && explorer_spr.vpos>93){
+		game_status = LEVEL_UP;
+	}
+	if(explorer_spr.hpos < 17 && explorer_spr.vpos == 51){
+		game_status = LEVEL_UP;
+	}
+	if(explorer_spr.hpos > 143 && explorer_spr.vpos == 51){
+		game_status = LEVEL_UP;
+	}
+	
 }
 
 void game_logic(){
@@ -283,17 +314,29 @@ void game_logic(){
 
 
 void game(){
+	char text[20];
 	
 	playing = 1;
+	level = 1;
+	game_status = NORMAL;
 	tgi_clear();
 	init_explorer();
+	init_level();
 	
 	while(playing){
 		if (!tgi_busy())
 		{
+			if(game_status == LEVEL_UP){
+				game_status = NORMAL;
+				init_explorer();
+				init_level();
+				level++;
+			}
 			game_logic();
 			explorer_logic();
 			physics();
+			itoa(level, text, 10);
+			tgi_outtextxy(8, 2, text);
 			tgi_updatedisplay();
 		}
 	}	
