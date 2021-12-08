@@ -7,13 +7,17 @@
 
 #include "game.h"
 
-unsigned int button;
+unsigned int playing;
 extern unsigned char ghost00_spr[];
 extern unsigned char ghost01_spr[];
 extern unsigned char explorer00_spr[];
 extern unsigned char explorer01_spr[];
 extern unsigned char explorer02_spr[];
 extern unsigned char explorer03_spr[];
+extern unsigned char hole00_spr[];
+extern unsigned char walls00[];
+extern unsigned char walls01[];
+extern unsigned char walls02[];
 extern unsigned char playfield00[];
 
 SCB_REHV_PAL ghost = {
@@ -40,11 +44,35 @@ SCB_REHV_PAL explorer_spr = {
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
 
-SCB_REHV_PAL playfield = {
+SCB_REHV_PAL hole = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
   (char *)&explorer_spr,
+  hole00_spr,
+  40, 40,
+  0x0100, 0x0100,
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+};
+
+SCB_REHV_PAL walls = {
+  BPP_4 | TYPE_NORMAL, 
+  REHV,
+  0x01,
+  (char *)&hole,
+  walls00,
+  0, 0,
+  0x0100, 0x0100,
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+};
+
+SCB_REHV_PAL playfield = {
+  BPP_4 | TYPE_NORMAL, 
+  REHV,
+  0x01,
+  (char *)&walls,
   playfield00,
   0, 0,
   0x0100, 0x0100,
@@ -53,14 +81,24 @@ SCB_REHV_PAL playfield = {
 };
 
 EXPLORER_TYPE explorer = {
-	640,
-	640,
+	1280,
+	1280,
 	1, 2,
 	20,
 	WALK,
 	600,
 	DIR_RIGHT
 };
+
+void init_explorer(){
+	explorer.vpos = 1280;			// vsize x8
+	explorer.hpos = 1280;			// hsize x8
+	explorer.tics = 10;			// tics for walk
+	explorer.status = SEARCH;		// status
+	explorer.statustics = 300;	// tics for status
+	explorer.direction = DIR_LEFT;
+	explorer_spr.data = explorer00_spr;
+}
 
 void explorer_logic(){
 	
@@ -84,18 +122,7 @@ void explorer_logic(){
 			explorer.hspeed = rand()/2048 - 8;
 		}
 	}
-	else{
-		explorer.vpos += explorer.vspeed;
-		explorer.hpos += explorer.hspeed;
-		explorer_spr.vpos = explorer.vpos/16;
-		explorer_spr.hpos = explorer.hpos/16;
-		if(explorer_spr.vpos < 8 || explorer_spr.vpos > 102-8){
-			explorer.vspeed = -explorer.vspeed;
-		}
-		if(explorer_spr.hpos < 8 || explorer_spr.hpos > 160-8){
-			explorer.hspeed = -explorer.hspeed;
-		}
-	}
+
 	if(explorer.status == WALK){
 		if(explorer.tics == 0){
 			if(explorer_spr.data == explorer00_spr){
@@ -150,6 +177,44 @@ void explorer_logic(){
 			explorer.tics = 10;
 	}
 	
+	if(explorer.status == FALL){
+			explorer.statustics = 120;
+			explorer.status = FALLING;
+			explorer.tics = 10;
+			explorer_spr.data = explorer02_spr;
+	}
+	
+	if(explorer.status == FALLING){
+			if(explorer.tics == 0){
+				if(explorer.direction == DIR_LEFT){
+					explorer.direction = DIR_RIGHT;
+				}
+				else{
+					explorer.direction = DIR_LEFT;
+				}
+				explorer.tics = 10;
+			}
+			if(explorer.statustics == 0){
+				playing = 0;
+			}
+	}
+	
+	if(explorer.status == PANIC || explorer.status == WALK){
+		explorer.vpos += explorer.vspeed;
+		explorer.hpos += explorer.hspeed;
+		explorer_spr.vpos = explorer.vpos/16;
+		explorer_spr.hpos = explorer.hpos/16;
+		if(explorer_spr.vpos < 8 || explorer_spr.vpos > 102-8){
+			explorer.vspeed = -explorer.vspeed;
+		}
+		if(explorer_spr.hpos < 8 || explorer_spr.hpos > 160-8){
+			explorer.hspeed = -explorer.hspeed;
+		}
+	}
+	
+	explorer_spr.vpos = explorer.vpos/16;
+	explorer_spr.hpos = explorer.hpos/16;
+	
 	if(explorer.direction == DIR_LEFT){
 		explorer_spr.sprctl0 = BPP_4 | TYPE_NORMAL;
 	}
@@ -160,6 +225,15 @@ void explorer_logic(){
 
 }
 
+void physics(){
+	signed int vdiff, hdiff;
+	vdiff = explorer_spr.vpos - hole.vpos;
+	hdiff = explorer_spr.hpos - hole.hpos;
+	if ((vdiff > -14 && vdiff < 2) && (hdiff > -8 && hdiff < 8) && explorer.status != FALLING){
+		explorer.status = FALL;
+	}
+}
+
 void game_logic(){
 	unsigned char joy;
 	
@@ -168,6 +242,8 @@ void game_logic(){
 	
 	
 	tgi_sprite(&playfield);
+	tgi_sprite(&walls);
+	tgi_sprite(&hole);
 	tgi_sprite(&explorer_spr);
 	tgi_sprite(&ghost);
 	joy = joy_read(JOY_1);
@@ -188,7 +264,7 @@ void game_logic(){
 	}
 	if (JOY_BTN_2(joy)) {
 		ghost.data = ghost01_spr;
-		if (explorer.status != PANIC){
+		if (explorer.status != PANIC && explorer.status != FALL && explorer.status != FALLING){
 			explorer.status = SCARED;
 		}
 	}
@@ -196,26 +272,29 @@ void game_logic(){
 		ghost.data = ghost00_spr;
 	}
 	
+	/*
 	if (JOY_BTN_1(joy)) {
-		button = 2;
+		playing = 2;
 	}
 	else{
-		if (button == 2) button = 0;
-	}
-	tgi_updatedisplay();
+		if (playing == 2) playing = 0;
+	}*/
 }
 
 
 void game(){
 	
-	button = 1;
+	playing = 1;
 	tgi_clear();
+	init_explorer();
 	
-	while(button){
+	while(playing){
 		if (!tgi_busy())
 		{
 			game_logic();
 			explorer_logic();
+			physics();
+			tgi_updatedisplay();
 		}
 	}	
 
