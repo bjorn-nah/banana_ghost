@@ -8,7 +8,9 @@
 #include "game.h"
 
 unsigned int playing, level;
-unsigned char game_status;
+unsigned char game_status, gates;
+unsigned int randomizator2 = 0;
+
 extern unsigned char ghost00_spr[];
 extern unsigned char ghost01_spr[];
 extern unsigned char explorer00_spr[];
@@ -16,16 +18,33 @@ extern unsigned char explorer01_spr[];
 extern unsigned char explorer02_spr[];
 extern unsigned char explorer03_spr[];
 extern unsigned char hole00_spr[];
-extern unsigned char walls00[];
-extern unsigned char walls01[];
-extern unsigned char walls02[];
+extern unsigned char wall_u0[];
+extern unsigned char wall_u1[];
+extern unsigned char wall_d0[];
+extern unsigned char wall_d1[];
+extern unsigned char wall_l0[];
+extern unsigned char wall_l1[];
+extern unsigned char wall_r0[];
+extern unsigned char wall_r1[];
 extern unsigned char playfield00[];
+
+SCB_REHV_PAL wall_d = {
+  BPP_4 | TYPE_NORMAL, 
+  REHV,
+  0x01,
+  0x0000,
+  wall_d0,
+  72, 85,
+  0x0100, 0x0100,
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+};
 
 SCB_REHV_PAL ghost = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
-  0x0000,
+  (char *)&wall_d,
   ghost00_spr,
   20, 20,
   0x0100, 0x0100,
@@ -57,25 +76,48 @@ SCB_REHV_PAL hole = {
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
 
-SCB_REHV_PAL walls = {
+SCB_REHV_PAL wall_l = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
   (char *)&hole,
-  walls00,
+  wall_l0,
   0, 0,
   0x0100, 0x0100,
   // 0 and D are inverted to make magenta transluent
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
 };
+SCB_REHV_PAL wall_r = {
+  BPP_4 | TYPE_NORMAL, 
+  REHV,
+  0x01,
+  (char *)&wall_l,
+  wall_r0,
+  152, 0,
+  0x0100, 0x0100,
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+};
+SCB_REHV_PAL wall_u = {
+  BPP_4 | TYPE_NORMAL, 
+  REHV,
+  0x01,
+  (char *)&wall_r,
+  wall_u0,
+  8, 0,
+  0x0100, 0x0100,
+  // 0 and D are inverted to make magenta transluent
+  {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+};
+
 
 SCB_REHV_PAL playfield = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
   0x01,
-  (char *)&walls,
+  (char *)&wall_u,
   playfield00,
-  0, 0,
+  8, 16,
   0x0100, 0x0100,
   // 0 and D are inverted to make magenta transluent
   {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
@@ -116,6 +158,25 @@ void init_level(){
 			pop = 0;
 		}
 	}
+	
+	if(level < 4){gates = UP_GATE + DOWN_GATE + LEFT_GATE + RIGHT_GATE;}
+	if(level >= 4 && level < 8){gates = UP_GATE + DOWN_GATE;}
+	if(level >= 8){gates = UP_GATE + DOWN_GATE;}
+	
+	/*
+	if(gates == UP_GATE + DOWN_GATE + LEFT_GATE + RIGHT_GATE){walls.data = walls00;}
+	if(gates == LEFT_GATE + RIGHT_GATE){walls.data = walls01;}
+	if(gates == UP_GATE + DOWN_GATE){walls.data = walls02;}
+	*/
+	//if(gates & UP_GATE){wall_u.data = wall_u0;}else{wall_u.data = wall_u1;}
+	wall_u.data = (gates & UP_GATE) 	? wall_u0 : wall_u1;
+	wall_d.data = (gates & DOWN_GATE) 	? wall_d0 : wall_d1;
+	wall_l.data = (gates & LEFT_GATE) 	? wall_l0 : wall_l1;
+	wall_r.data = (gates & RIGHT_GATE) 	? wall_r0 : wall_r1;
+}
+
+void display_level(){
+	
 }
 
 void explorer_logic(){
@@ -250,16 +311,16 @@ void physics(){
 	if ((vdiff > -14 && vdiff < 2) && (hdiff > -8 && hdiff < 8) && explorer.status != FALLING){
 		explorer.status = FALL;
 	}
-	if(explorer_spr.hpos == 80 && explorer_spr.vpos<17){
+	if(explorer_spr.hpos == 80 && explorer_spr.vpos<17 && (gates & UP_GATE)){
 		game_status = LEVEL_UP;
 	}
-	if(explorer_spr.hpos == 80 && explorer_spr.vpos>93){
+	if(explorer_spr.hpos == 80 && explorer_spr.vpos>93 && (gates & DOWN_GATE)){
 		game_status = LEVEL_UP;
 	}
-	if(explorer_spr.hpos < 17 && explorer_spr.vpos == 51){
+	if(explorer_spr.hpos < 17 && explorer_spr.vpos == 51 && (gates & LEFT_GATE)){
 		game_status = LEVEL_UP;
 	}
-	if(explorer_spr.hpos > 143 && explorer_spr.vpos == 51){
+	if(explorer_spr.hpos > 143 && explorer_spr.vpos == 51 && (gates & RIGHT_GATE)){
 		game_status = LEVEL_UP;
 	}
 	
@@ -273,10 +334,14 @@ void game_logic(){
 	
 	
 	tgi_sprite(&playfield);
-	tgi_sprite(&walls);
+	tgi_sprite(&wall_u);
+	tgi_sprite(&wall_l);
+	tgi_sprite(&wall_r);
 	tgi_sprite(&hole);
 	tgi_sprite(&explorer_spr);
 	tgi_sprite(&ghost);
+	tgi_sprite(&wall_d);
+	
 	joy = joy_read(JOY_1);
 	
 	if (JOY_UP(joy) && ghost.vpos > 8) {
@@ -327,10 +392,11 @@ void game(){
 		if (!tgi_busy())
 		{
 			if(game_status == LEVEL_UP){
+				level++;
 				game_status = NORMAL;
 				init_explorer();
 				init_level();
-				level++;
+				srand(randomizator2);
 			}
 			game_logic();
 			explorer_logic();
@@ -338,6 +404,7 @@ void game(){
 			itoa(level, text, 10);
 			tgi_outtextxy(8, 2, text);
 			tgi_updatedisplay();
+			randomizator2++;
 		}
 	}	
 

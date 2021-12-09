@@ -9,16 +9,6 @@ unsigned int button_title;
 extern unsigned char title_screen_bg[];
 unsigned int randomizator = 0;
 
-/*
-SCB_RENONE screen_bg =  {
-	BPP_4 | TYPE_NORMAL, 
-	REUSEPAL, 0x01,
-	0x0000,
-	title_screen_bg,
-	0, 0
-};*/
-
-
 SCB_REHV_PAL screen_bg = {
   BPP_4 | TYPE_NORMAL, 
   REHV,
@@ -32,7 +22,8 @@ SCB_REHV_PAL screen_bg = {
 
 void screen_logic(){
 	unsigned char joy;
-
+	tgi_sprite(&screen_bg);
+	tgi_outtextxy(56, 88, "Press A or B");
 
 	joy = joy_read(JOY_1);
 	if (JOY_BTN_1(joy) || JOY_BTN_2(joy) ) {
@@ -41,6 +32,7 @@ void screen_logic(){
 	else{
 		if (button_title == 2) button_title = 0;
 	}
+	tgi_updatedisplay();
 }
 
 
@@ -48,13 +40,13 @@ void title_screen(){
 	
 	button_title = 1;
 	tgi_clear();
-	tgi_sprite(&screen_bg);
-	tgi_updatedisplay();
 	
-	tgi_outtextxy(56, 88, "Press A or B");
+	
 	while(button_title){
-		screen_logic();
-		randomizator++;
+		if (!tgi_busy()){
+			screen_logic();
+			randomizator++;
+		}
 	}	
 	srand(randomizator);
 }

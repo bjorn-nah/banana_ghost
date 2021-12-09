@@ -12,6 +12,11 @@
 #define NORMAL		0x20
 #define LEVEL_UP	0x21
 
+#define UP_GATE		0x01
+#define DOWN_GATE	0x02
+#define LEFT_GATE	0x04
+#define RIGHT_GATE	0x08
+
 typedef struct EXPLORER_TYPE {
 	signed int vpos;			// vsize x8
 	signed int hpos;			// hsize x8
