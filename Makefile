@@ -41,7 +41,13 @@ CFLAGS=-I $(CC65_INC) -t $(SYS) --add-source -O -Or -Cl -Os
 
 target = banana_ghost
 #objects = main.o title_screen.o game.o ghost00_spr.o ghost01_spr.o explorer00_spr.o explorer01_spr.o explorer02_spr.o explorer03_spr.o hole00_spr.o walls00.o walls01.o walls02.o playfield00.o title_screen_bg.o
-objects = main.o title_screen.o game.o ghost00_spr.o ghost01_spr.o explorer00_spr.o explorer01_spr.o explorer02_spr.o explorer03_spr.o hole00_spr.o hole01_spr.o wall_u0.o wall_u1.o wall_d0.o wall_d1.o wall_l0.o wall_l1.o wall_r0.o wall_r1.o playfield00.o title_screen_bg.o
+objects = main.o title_screen.o game.o \
+	soundbs.o ghosty.o \
+	ghost00_spr.o ghost01_spr.o\
+	explorer00_spr.o explorer01_spr.o explorer02_spr.o explorer03_spr.o \
+	hole00_spr.o hole01_spr.o \
+	wall_u0.o wall_u1.o wall_d0.o wall_d1.o wall_l0.o wall_l1.o wall_r0.o wall_r1.o \
+	playfield00.o title_screen_bg.o
 
 $(target) : $(objects)
 	$(CL) -t $(SYS) -o $@.lnx -m banana_ghost.map $(objects) lynx.lib

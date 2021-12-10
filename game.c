@@ -7,6 +7,9 @@
 
 #include "game.h"
 
+extern void init_music();
+extern void start_music();
+
 unsigned int playing, level, holes;
 unsigned char game_status, gates;
 unsigned int randomizator2 = 0;
@@ -431,6 +434,9 @@ void game(){
 	init_explorer();
 	init_level();
 	
+	init_music();
+	start_music();
+	
 	while(playing){
 		if (!tgi_busy())
 		{
@@ -450,5 +456,7 @@ void game(){
 			randomizator2++;
 		}
 	}	
+	
+	asm("jsr SndStopAll");
 
 }
