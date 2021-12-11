@@ -10,7 +10,9 @@
 extern void init_music();
 extern void start_music();
 
-unsigned int playing, level, holes;
+extern unsigned int level;
+
+unsigned int playing, holes;
 unsigned char game_status, gates;
 unsigned int randomizator2 = 0;
 
@@ -162,11 +164,19 @@ EXPLORER_TYPE explorer = {
 };
 
 void init_explorer(){
-	explorer.vpos = 1072;			// vsize x16
-	explorer.hpos = 1280;			// hsize x16
+	if(level < 6){
+		explorer.vpos = 1072;			// vsize x16
+		explorer.hpos = 1280;			// hsize x16
+		explorer.statustics = 180;	// tics for status
+	} else {
+		explorer.hpos = rand()/21 + 512;
+		explorer.vpos = rand()/53 + 512;
+		explorer.statustics = rand()/273 + 60; // between 1 & 3 sec
+	}
+	
+	
 	explorer.tics = 10;			// tics for walk
 	explorer.status = SEARCH;		// status
-	explorer.statustics = 300;	// tics for status
 	explorer.direction = DIR_LEFT;
 	explorer_spr.data = explorer00_spr;
 	explorer_spr.vpos = explorer.vpos/16;
@@ -187,38 +197,64 @@ void init_level(){
 		}
 	}
 	
-	if(level < 4){
+	if(level < 8){
 		gates = UP_GATE + DOWN_GATE + LEFT_GATE + RIGHT_GATE;
 		holes = 1;
 		hole1.data = hole01_spr;
 		hole2.data = hole01_spr;
 	}
-	if(level >= 4 && level < 8){
+	pop = 1;
+	if(level >= 8 && level < 12){
 		gates = rand() & 0x000F;
 		holes = 2;
 		hole1.data = hole00_spr;
 		hole2.data = hole01_spr;
+		while(pop){
+			hole1.hpos = rand()/341 + 32;
+			hole1.vpos = rand()/862 + 32;			
+			vdiff = explorer_spr.vpos - hole1.vpos;
+			hdiff = explorer_spr.hpos - hole1.hpos;
+			if (!(vdiff > -16 && vdiff < 4 && hdiff > -8 && hdiff < 8)){
+				pop = 0;
+			}
 		}
-	if(level >= 8){
+	}
+	if(level >= 12){
 		gates = rand() & 0x000F;
 		holes = 3;
 		hole1.data = hole00_spr;
 		hole2.data = hole00_spr;
+		
+		pop = 1;
+		while(pop){
+			hole1.hpos = rand()/341 + 32;
+			hole1.vpos = rand()/862 + 32;			
+			vdiff = explorer_spr.vpos - hole1.vpos;
+			hdiff = explorer_spr.hpos - hole1.hpos;
+			if (!(vdiff > -16 && vdiff < 4 && hdiff > -8 && hdiff < 8)){
+				pop = 0;
+			}
+		}
+		pop = 1;
+		while(pop){
+			hole2.hpos = rand()/341 + 32;
+			hole2.vpos = rand()/862 + 32;			
+			vdiff = explorer_spr.vpos - hole2.vpos;
+			hdiff = explorer_spr.hpos - hole2.hpos;
+			if (!(vdiff > -16 && vdiff < 4 && hdiff > -8 && hdiff < 8)){
+				pop = 0;
+			}
+		}
 	}
 	
-	/*
-	if(gates == UP_GATE + DOWN_GATE + LEFT_GATE + RIGHT_GATE){walls.data = walls00;}
-	if(gates == LEFT_GATE + RIGHT_GATE){walls.data = walls01;}
-	if(gates == UP_GATE + DOWN_GATE){walls.data = walls02;}
-	*/
+	if(gates == 0){
+		gates = UP_GATE;
+	}
+	
 	wall_u.data = (gates & UP_GATE) 	? wall_u0 : wall_u1;
 	wall_d.data = (gates & DOWN_GATE) 	? wall_d0 : wall_d1;
 	wall_l.data = (gates & LEFT_GATE) 	? wall_l0 : wall_l1;
 	wall_r.data = (gates & RIGHT_GATE) 	? wall_r0 : wall_r1;
-}
-
-void display_level(){
-	
 }
 
 void explorer_logic(){
@@ -234,10 +270,11 @@ void explorer_logic(){
 			else{
 				explorer.direction = DIR_LEFT;
 			}
-			explorer.tics = 120;
+			explorer.tics = 60;
 		}
 		if(explorer.statustics == 0){
-			explorer.statustics = 600;
+			//explorer.statustics = 600;
+			explorer.statustics = rand()/68 + 60; // between 1 & 9 sec
 			explorer.status = WALK;
 			explorer.vspeed = rand()/2048 - 8;
 			explorer.hspeed = rand()/2048 - 8;
@@ -263,7 +300,8 @@ void explorer_logic(){
 			explorer.direction = DIR_LEFT;
 		}
 		if(explorer.statustics == 0){
-			explorer.statustics = 600;
+			//explorer.statustics = 600;
+			explorer.statustics = rand()/273 + 60; // between 1 & 3 sec
 			explorer.status = SEARCH;
 		}
 	}
@@ -286,12 +324,14 @@ void explorer_logic(){
 			explorer.direction = DIR_LEFT;
 		}
 		if(explorer.statustics == 0){
-			explorer.statustics = 600;
+			//explorer.statustics = 600;
+			explorer.statustics = rand()/273 + 60; // between 1 & 3 sec
 			explorer.status = SEARCH;
 		}
 	}
 	if(explorer.status == SCARED){
-			explorer.statustics = 600;
+			//explorer.statustics = 600;
+			explorer.statustics = rand()/273 + 360; // between 6 & 8 sec
 			explorer.status = PANIC;
 			explorer.vspeed = explorer_spr.vpos - ghost.vpos;
 			explorer.hspeed = explorer_spr.hpos - ghost.hpos;
@@ -348,10 +388,29 @@ void explorer_logic(){
 
 void physics(){
 	signed int vdiff, hdiff;
+	// hole 0
 	vdiff = explorer_spr.vpos - hole0.vpos;
 	hdiff = explorer_spr.hpos - hole0.hpos;
 	if ((vdiff > -14 && vdiff < 2) && (hdiff > -8 && hdiff < 8) && explorer.status != FALLING){
 		explorer.status = FALL;
+	}
+	
+	// hole 1
+	if (holes > 1){
+		vdiff = explorer_spr.vpos - hole1.vpos;
+		hdiff = explorer_spr.hpos - hole1.hpos;
+		if ((vdiff > -14 && vdiff < 2) && (hdiff > -8 && hdiff < 8) && explorer.status != FALLING){
+			explorer.status = FALL;
+		}
+	}
+	
+	// hole 2
+	if (holes > 2){
+		vdiff = explorer_spr.vpos - hole2.vpos;
+		hdiff = explorer_spr.hpos - hole2.hpos;
+		if ((vdiff > -14 && vdiff < 2) && (hdiff > -8 && hdiff < 8) && explorer.status != FALLING){
+			explorer.status = FALL;
+		}
 	}
 	
 	// gates
@@ -413,14 +472,6 @@ void game_logic(){
 	else{
 		ghost.data = ghost00_spr;
 	}
-	
-	/*
-	if (JOY_BTN_1(joy)) {
-		playing = 2;
-	}
-	else{
-		if (playing == 2) playing = 0;
-	}*/
 }
 
 
@@ -446,12 +497,15 @@ void game(){
 				init_explorer();
 				init_level();
 				srand(randomizator2);
+				if(level > 16){playing = 0;}
 			}
 			game_logic();
 			explorer_logic();
 			physics();
+			/*
 			itoa(level, text, 10);
 			tgi_outtextxy(8, 2, text);
+			*/
 			tgi_updatedisplay();
 			randomizator2++;
 		}

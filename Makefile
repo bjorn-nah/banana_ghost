@@ -41,7 +41,7 @@ CFLAGS=-I $(CC65_INC) -t $(SYS) --add-source -O -Or -Cl -Os
 
 target = banana_ghost
 #objects = main.o title_screen.o game.o ghost00_spr.o ghost01_spr.o explorer00_spr.o explorer01_spr.o explorer02_spr.o explorer03_spr.o hole00_spr.o walls00.o walls01.o walls02.o playfield00.o title_screen_bg.o
-objects = main.o title_screen.o game.o \
+objects = main.o result_screen.o title_screen.o game.o \
 	soundbs.o ghosty.o \
 	ghost00_spr.o ghost01_spr.o\
 	explorer00_spr.o explorer01_spr.o explorer02_spr.o explorer03_spr.o \

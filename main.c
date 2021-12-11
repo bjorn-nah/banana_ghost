@@ -8,11 +8,14 @@
 
 extern int title_screen();
 extern int game();
+extern int result_screen();
 
 // palette values can be found in .pal file provided by sprpck
 static int palette[] =  {
   0x0000, 0x0008, 0x0800, 0x0808, 0x0080, 0x0088, 0x0880, 0x0888, 0x0CCC, 0x000F, 0x0F00, 0x0F0F, 0x00F0, 0x0000, 0x0FF0, 0x0FFF
 };
+
+unsigned int level;
 
 void setpalette(const int* palette)
 {
@@ -79,6 +82,7 @@ void main(void)
 	{
 		title_screen();
 		game();
+		result_screen();
 	}
 	return;
 }
