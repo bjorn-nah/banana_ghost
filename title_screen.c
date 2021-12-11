@@ -24,6 +24,10 @@ void screen_logic(){
 	unsigned char joy;
 	tgi_sprite(&screen_bg);
 	tgi_outtextxy(56, 88, "Press A or B");
+	
+	//tgi_outtextxy(104, 0, "WIP 0.1");
+	tgi_outtextxy(88, 64, "#LynxJam");
+	tgi_outtextxy(120, 72, "2021");
 
 	joy = joy_read(JOY_1);
 	if (JOY_BTN_1(joy) || JOY_BTN_2(joy) ) {
