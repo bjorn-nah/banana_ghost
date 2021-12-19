@@ -10,6 +10,8 @@ extern int title_screen();
 extern int game();
 extern int result_screen();
 
+extern unsigned int pause;
+
 // palette values can be found in .pal file provided by sprpck
 static int palette[] =  {
   0x0000, 0x0008, 0x0800, 0x0808, 0x0080, 0x0088, 0x0880, 0x0888, 0x0CCC, 0x000F, 0x0F00, 0x0F0F, 0x00F0, 0x0000, 0x0FF0, 0x0FFF
@@ -70,6 +72,34 @@ void initialize()
 	tgi_setbgcolor(COLOR_BLACK);
 
 	tgi_clear();
+}
+
+void reboot()
+{
+	asm("sei");
+	asm("stz $FFF9");
+	asm("jmp ($FFFC)");
+}
+
+void std_functions()
+{
+	if (kbhit()){
+		switch (cgetc())
+			{
+			case 'F':
+				tgi_flip();
+				break;
+			case 'R':
+				reboot();
+				break;
+			case 'P':
+				pause = !pause;
+				break;
+
+			default:
+				break;
+			}
+	}
 }
 
 

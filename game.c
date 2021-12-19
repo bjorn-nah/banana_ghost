@@ -9,10 +9,11 @@
 
 extern void init_music();
 extern void start_music();
+extern void std_functions();
 
 extern unsigned int level;
 
-unsigned int playing, holes;
+unsigned int playing, holes, pause;
 unsigned char game_status, gates;
 unsigned int randomizator2 = 0;
 
@@ -255,6 +256,8 @@ void init_level(){
 	wall_d.data = (gates & DOWN_GATE) 	? wall_d0 : wall_d1;
 	wall_l.data = (gates & LEFT_GATE) 	? wall_l0 : wall_l1;
 	wall_r.data = (gates & RIGHT_GATE) 	? wall_r0 : wall_r1;
+	
+	pause = 0;
 }
 
 void explorer_logic(){
@@ -476,7 +479,7 @@ void game_logic(){
 
 
 void game(){
-	char text[20];
+	//char text[20];
 	
 	playing = 1;
 	level = 1;
@@ -499,13 +502,18 @@ void game(){
 				srand(randomizator2);
 				if(level > 16){playing = 0;}
 			}
-			game_logic();
-			explorer_logic();
-			physics();
+			if(!pause){
+				game_logic();
+				explorer_logic();
+				physics();
+			} else{
+				tgi_outtextxy(36, 48, "GAME PAUSED");
+			}
 			/*
 			itoa(level, text, 10);
 			tgi_outtextxy(8, 2, text);
 			*/
+			std_functions();
 			tgi_updatedisplay();
 			randomizator2++;
 		}

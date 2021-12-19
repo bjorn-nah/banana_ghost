@@ -6,6 +6,7 @@
 #include <joystick.h> 
 
 extern unsigned int level;
+extern void std_functions();
 
 unsigned int button_result;
 
@@ -38,6 +39,7 @@ void end_logic(){
 	else{
 		if (button_result == 2) button_result = 0;
 	}
+	std_functions();
 	tgi_updatedisplay();
 }
 

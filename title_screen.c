@@ -5,6 +5,8 @@
 #include <conio.h>
 #include <joystick.h> 
 
+extern void std_functions();
+
 unsigned int button_title;
 extern unsigned char title_screen_bg[];
 unsigned int randomizator = 0;
@@ -36,6 +38,7 @@ void screen_logic(){
 	else{
 		if (button_title == 2) button_title = 0;
 	}
+	std_functions();
 	tgi_updatedisplay();
 }
 
