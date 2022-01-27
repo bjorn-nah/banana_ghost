@@ -17,6 +17,11 @@
 #define LEFT_GATE	0x04
 #define RIGHT_GATE	0x08
 
+#define EXIT		0x80
+#define VISITED		0x10
+
+
+
 typedef struct EXPLORER_TYPE {
 	signed int vpos;			// vsize x8
 	signed int hpos;			// hsize x8

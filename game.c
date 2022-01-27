@@ -14,8 +14,17 @@ extern void std_functions();
 extern unsigned int level;
 
 unsigned int playing, holes, pause;
+unsigned int x_map, y_map;
 unsigned char game_status, gates;
 unsigned int randomizator2 = 0;
+
+unsigned char level_map[] = {
+	0x00, 0x88, 0x0C, 0x06, 0x00,
+	0x00, 0x08, 0x0E, 0x05, 0x00,
+	0x00, 0x0A, 0x0F, 0x06, 0x02,
+	0x00, 0x01, 0x03, 0x09, 0x07,
+	0x00, 0x00, 0x01, 0x00, 0x01
+};
 
 extern unsigned char ghost00_spr[];
 extern unsigned char ghost01_spr[];
@@ -188,6 +197,7 @@ void init_level(){
 	signed int vdiff, hdiff;
 	unsigned int pop = 1;
 	
+	/*
 	while(pop){
 		hole0.hpos = rand()/341 + 32;
 		hole0.vpos = rand()/862 + 32;			
@@ -247,10 +257,13 @@ void init_level(){
 			}
 		}
 	}
-	
+		
 	if(gates == 0){
 		gates = UP_GATE;
 	}
+	*/
+	level_map[y_map*5+x_map] = level_map[y_map*5+x_map] | VISITED;
+	gates = level_map[y_map*5+x_map];
 	
 	wall_u.data = (gates & UP_GATE) 	? wall_u0 : wall_u1;
 	wall_d.data = (gates & DOWN_GATE) 	? wall_d0 : wall_d1;
@@ -418,15 +431,19 @@ void physics(){
 	
 	// gates
 	if(explorer_spr.hpos > 72 && explorer_spr.hpos < 88 && explorer_spr.vpos<10 && (gates & UP_GATE)){
+		y_map--;
 		game_status = LEVEL_UP;
 	}
 	if(explorer_spr.hpos > 72 && explorer_spr.hpos < 88 && explorer_spr.vpos>92 && (gates & DOWN_GATE)){
+		y_map++;
 		game_status = LEVEL_UP;
 	}
 	if(explorer_spr.hpos < 10 && explorer_spr.vpos > 43 && explorer_spr.vpos < 59 && (gates & LEFT_GATE)){
+		x_map--;
 		game_status = LEVEL_UP;
 	}
 	if(explorer_spr.hpos > 150 && explorer_spr.vpos > 43 && explorer_spr.vpos < 59 && (gates & RIGHT_GATE)){
+		x_map++;
 		game_status = LEVEL_UP;
 	}
 	
@@ -483,6 +500,10 @@ void game(){
 	
 	playing = 1;
 	level = 1;
+	
+	x_map = 2;
+	y_map = 2;
+	
 	game_status = NORMAL;
 	tgi_clear();
 	init_explorer();
@@ -490,6 +511,8 @@ void game(){
 	
 	init_music();
 	start_music();
+	
+
 	
 	while(playing){
 		if (!tgi_busy())
@@ -500,7 +523,8 @@ void game(){
 				init_explorer();
 				init_level();
 				srand(randomizator2);
-				if(level > 16){playing = 0;}
+				//if(level > 32){playing = 0;}
+				if (level_map[y_map*5+x_map] & EXIT) {playing = 0;}
 			}
 			if(!pause){
 				game_logic();
