@@ -194,7 +194,7 @@ void init_explorer(){
 }
 
 void init_level(){
-	signed int vdiff, hdiff;
+	//signed int vdiff, hdiff;
 	unsigned int pop = 1;
 	
 	/*
@@ -271,6 +271,73 @@ void init_level(){
 	wall_r.data = (gates & RIGHT_GATE) 	? wall_r0 : wall_r1;
 	
 	pause = 0;
+}
+
+MAP_LIST *init_map(){
+	unsigned char pal[8] = {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF};
+	MAP_LIST *map_list = malloc(sizeof(*map_list));
+	SCB_REHV_PAL *element = malloc(sizeof(*element));
+	
+	/*
+	element = {
+		BPP_4 | TYPE_NORMAL, 
+		REHV,
+		0x01,
+		0x0000,
+		explorer00_spr,
+		8, 8,
+		0x0100, 0x0100,
+		// 0 and D are inverted to make magenta transluent
+		{0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF}
+		};
+		*/
+		
+	element->sprctl0 = BPP_4 | TYPE_NORMAL;
+	element->sprctl1 = REHV;
+	element->sprcoll = 0x01;
+	element->next = 0x0000;
+	element->data = explorer00_spr;
+	element->hpos = 8;
+	element->vpos = 8;
+	element->hsize = 0x0100;
+	element->vsize = 0x0100;
+	element->penpal[8] = *pal;
+	
+	map_list->first = element;
+	return map_list;
+}
+
+void insert_map(MAP_LIST *map_list, unsigned char *src, signed int x, signed int y){
+	unsigned char pal[8] = {0xD1,0x23,0x45,0x67,0x89,0xAB,0xC0,0xEF};
+	
+	SCB_REHV_PAL *new_element = malloc(sizeof(*new_element));
+
+	new_element->sprctl0 = BPP_4 | TYPE_NORMAL;
+	new_element->sprctl1 = REHV;
+	new_element->sprcoll = 0x01;
+	new_element->next = (char *)&map_list->first;
+	new_element->data = src;
+	new_element->hpos = x;
+	new_element->vpos = y;
+	new_element->hsize = 0x0100;
+	new_element->vsize = 0x0100;
+	new_element->penpal[8] = *pal;
+	
+	map_list->first = new_element;
+}
+
+MAP_LIST *build_map(){
+	signed int x, y;
+	unsigned char map_src[] = "map_0";
+	MAP_LIST *map_list = init_map();
+	for(y=0; y<5; y++){
+		for(x=0; x<5; x++){
+			if(level_map[y*5+x]&VISITED){
+				insert_map(map_list, map_src, x, y);
+			}
+		}
+	}
+	return map_list;
 }
 
 void explorer_logic(){

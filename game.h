@@ -32,3 +32,7 @@ typedef struct EXPLORER_TYPE {
 	unsigned int statustics;	// tics for status
 	unsigned char direction;
 } EXPLORER_TYPE;
+
+typedef struct MAP_LIST {
+	SCB_REHV_PAL *first;
+} MAP_LIST;
